@@ -1,0 +1,7 @@
+###################################
+# Change hostnames from variables #
+###################################
+
+- name: Change node's hostname from variable 'hostname'
+  hostname:
+    name: "{{ hostname }}"
