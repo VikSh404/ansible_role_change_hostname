@@ -1,0 +1,6 @@
+tmp*
+test*
+example*
+*.tmp
+*.bak
+*.log

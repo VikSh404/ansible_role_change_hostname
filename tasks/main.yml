@@ -1,7 +1,48 @@
-###################################
-# Change hostnames from variables #
-###################################
+##############
+# Get labels #
+##############
 
-- name: Change node's hostname from variable 'hostname'
-  hostname:
+- name: Get info about Docker Swarm and list of registered nodes
+  docker_node_info:
     name: "{{ hostname }}"
+  delegate_to: "{{ groups['managers'][0] }}"
+  #run_once: true
+  register: result_docker_swarm_info
+
+#####################
+# Set "true" labels #
+#####################
+
+- name: Set true for each label of nodes
+  docker_node:
+    hostname: "{{ hostname }}"
+    labels: "{{ item }}=true"
+    # labels_state: replace
+  delegate_to: "{{ groups['managers'][0] }}"
+  when: 'item in swarm_labels'
+  loop: "{{ all_swarm_labels }}"
+
+######################
+# Set "false" labels #
+######################
+
+- name: Set false for each label of nodes
+  docker_node:
+    hostname: "{{ hostname }}"
+    labels: "{{ item }}=false"
+    # labels_state: replace
+  delegate_to: "{{ groups['managers'][0] }}"
+  when: 'item not in swarm_labels'
+  loop: "{{ all_swarm_labels }}"
+
+########################
+# Remove unused labels #
+########################
+
+- name: Remove unused labels from the node
+  docker_node:
+    hostname: "{{ hostname }}"
+    labels_to_remove: "{{ item }}"
+  delegate_to: "{{ groups['managers'][0] }}"
+  when: 'item not in all_swarm_labels'
+  loop: "{{ result_docker_swarm_info.nodes[0].Spec.Labels | flatten(1) }}"
